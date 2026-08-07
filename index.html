@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel ESP32</title>
-    <!-- Importa a biblioteca Paho MQTT, a mais famosa para navegadores -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <style>
-        /* Um pouco de CSS básico para não ficar tão feio */
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
         .painel { background: white; padding: 20px; border-radius: 10px; display: inline-block; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         .valor { font-size: 48px; font-weight: bold; color: #007BFF; }
@@ -20,34 +18,22 @@
         <h1>Meu ESP32-S3</h1>
         <p class="status">Status: <span id="status_conexao">Conectando...</span></p>
         
-        <!-- É aqui que o valor do sensor vai aparecer -->
         <h2>Temperatura</h2>
         <div class="valor"><span id="valor_temperatura">--</span> °C</div>
     </div>
 
     <script>
         // 1. CONFIGURAÇÕES DO BROKER
-        // Usando o broker público do HiveMQ na porta de WebSockets (8000)
         const broker = "broker.hivemq.com";
-        const porta = 8000;
-        
-        // O tópico deve ser único. Mude para algo seu depois!
+        const porta = 8884; // <-- MUDOU AQUI: Porta para conexão segura (WSS)
         const topico = "meu_projeto_esp32/sensor/temperatura";
 
-        // Cria um ID de cliente aleatório (obrigatório no MQTT)
         const clientID = "web_" + parseInt(Math.random() * 1000, 10);
-        
-        // Inicializa o cliente MQTT
         const cliente = new Paho.MQTT.Client(broker, porta, clientID);
 
         // 2. O QUE FAZER QUANDO RECEBER UM DADO
         cliente.onMessageArrived = function(mensagem) {
-            // Pega o dado que chegou (payload)
-            let dadoRecebido = mensagem.payloadString;
-            
-            // Procura o elemento HTML com id="valor_temperatura" e injeta o texto lá
-            document.getElementById("valor_temperatura").innerText = dadoRecebido;
-            console.log("Recebido: " + dadoRecebido);
+            document.getElementById("valor_temperatura").innerText = mensagem.payloadString;
         };
 
         // 3. O QUE FAZER SE A CONEXÃO CAIR
@@ -58,8 +44,8 @@
 
         // 4. INICIANDO A CONEXÃO
         cliente.connect({
+            useSSL: true, // <-- MUDOU AQUI: Obriga o navegador a usar segurança
             onSuccess: function() {
-                // Se conectar com sucesso, muda o texto e assina o tópico
                 document.getElementById("status_conexao").innerText = "Conectado ao Broker!";
                 document.getElementById("status_conexao").style.color = "green";
                 cliente.subscribe(topico);
