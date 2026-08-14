@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Universitário</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <style>
+        body {
+            font-family: Montserrat, sans-serif;
+            text-align: center; /* Centraliza tudo no body */
+            padding: 20px;
+            background-color: #121212; /* Fundo escuro */
+            color: #ffffff;
+            margin: 0;
+        }
+
+        /* Botão Voltar */
+        .voltar {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-decoration: none;
+            background-color: #333;
+            padding: 10px 20px;
+            border-radius: 5px;
+            float: left; /* Mantém à esquerda */
+        }
+
+        .cabecalho {
+            background: #2c2c2c;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.3);
+            margin: 15px auto; /* Auto centraliza horizontalmente */
+            display: block;
+            width: 80%; /* Ocupa 80% da tela */
+            clear: both; /* Garante que fique abaixo do botão voltar */
+        }
+
+        /* Grid dos Sensores */
+        .grid-sensores {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .painel {
+            background: #add8e6; /* Azul claro */
+            color: #000000; /* Texto preto para contrastar com o fundo claro */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.3);
+            width: 250px;
+        }
+
+        .valor {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff0000; /* Tom de vermelho solicitado para os algarismos */
+            margin-top: 10px;
+        }
+
+        .status {
+            color: #a0a0a0;
+            font-size: 14px;
+        }
+        
+        h1, h2 {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="index.html" class="voltar">← Voltar para Home</a>
+
+    <div class="cabecalho">
+        <h1>Hospital Universitário</h1>
+        <p class="status">Status: <span id="status_conexao">Conectando...</span></p>
+    </div>
+    
+    <div class="grid-sensores">
+        <div class="painel">
+            <h2>Temperatura</h2>
+            <div class="valor"><span id="valor_temperatura">--</span> °C</div>
+        </div>
+        <div class="painel">
+            <h2>Umidade</h2>
+            <div class="valor"><span id="valor_umidade">--</span> %</div>
+        </div>
+        <div class="painel">
+            <h2>Estado da porta</h2>
+            <div class="valor"><span id="estado_da_porta">--</span> </div>
+        </div>
+        <div class="painel">
+            <h2>Estado da energia</h2>
+            <div class="valor"><span id="estado_da_energia">--</span> </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. CONFIGURAÇÕES DO BROKER
+        const broker = "broker.hivemq.com";
+        const porta = 8884; 
+        
+        // Ajuste os tópicos para o Hospital, se necessário
+        const topico_temperatura = "hospital/sensor/temperatura";
+        const topico_umidade = "hospital/sensor/umidade";
+        const topico_porta = "hospital/sensor/porta";
+        const topico_energia = "hospital/sensor/energia";
+
+        const clientID = "web_hospital_" + parseInt(Math.random() * 1000, 10);
+        const cliente = new Paho.MQTT.Client(broker, porta, clientID);
+
+        // 2. O QUE FAZER QUANDO RECEBER UM DADO
+        cliente.onMessageArrived = function (mensagem) {
+            let topicoRecebido = mensagem.destinationName;
+            let dadoRecebido = mensagem.payloadString;
+
+            if (topicoRecebido === topico_temperatura) {
+                document.getElementById("valor_temperatura").innerText = dadoRecebido;
+            }
+            else if (topicoRecebido === topico_umidade) {
+                document.getElementById("valor_umidade").innerText = dadoRecebido;
+            }
+            else if (topicoRecebido === topico_porta) {
+                document.getElementById("estado_da_porta").innerText = dadoRecebido;
+            }
+            else if (topicoRecebido === topico_energia) {
+                document.getElementById("estado_da_energia").innerText = dadoRecebido;
+            }
+        };
+
+        // 3. O QUE FAZER SE A CONEXÃO CAIR
+        cliente.onConnectionLost = function (responseObject) {
+            document.getElementById("status_conexao").innerText = "Desconectado";
+            document.getElementById("status_conexao").style.color = "red";
+        };
+
+        // 4. INICIANDO A CONEXÃO
+        cliente.connect({
+            useSSL: true, 
+            onSuccess: function () {
+                document.getElementById("status_conexao").innerText = "Conectado ao Broker!";
+                document.getElementById("status_conexao").style.color = "#00ff00"; // Verde neon para fundo escuro
+                cliente.subscribe(topico_temperatura);
+                cliente.subscribe(topico_umidade);
+                cliente.subscribe(topico_porta);
+                cliente.subscribe(topico_energia);
+            },
+            onFailure: function (erro) {
+                document.getElementById("status_conexao").innerText = "Falha na conexão";
+            }
+        });
+    </script>
+</body>
+
+</html>
