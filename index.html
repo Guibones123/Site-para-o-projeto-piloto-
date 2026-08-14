@@ -5,134 +5,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interface de monitoramento</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <style>
         body {
             font-family: Montserrat, sans-serif;
             text-align: left;
-            padding-left: 30px;
-            margin-top: 250px;
-            background-color: #DC143C;
-        }
-
-        .painel {
-            background: #ffffff;
             padding: 20px;
-            border-radius: 15px;
-            display: inline-block;
-            box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.1);
-            margin: 15px;
+            background-color: #121212; /* Fundo escuro */
+            color: #ffffff;
+            margin: 0;
         }
 
+        /* Barra superior e Busca parecida com image_27d575.png */
+        .barra-superior {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .container-busca {
+            background-color: #2c2c2c;
+            border-radius: 25px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-busca {
+            background: transparent;
+            border: none;
+            color: #8c8c8c;
+            font-size: 16px;
+            outline: none;
+            width: 200px;
+        }
+        
+        .input-busca::placeholder {
+            color: #8c8c8c;
+        }
+
+        .icone-busca {
+            color: #ffffff;
+            font-size: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        /* Título Principal */
         .cabecalho {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.1);
-            margin: 15px;
-
-            /* Diferenças em relação ao .painel: */
-            display: block;
-            /* Força a ocupar a linha inteira sozinho */
             text-align: center;
-            /* Centraliza o título e o status */
+            margin-bottom: 40px;
         }
 
-        .valor {
-            font-size: 48px;
+        .cabecalho h1 {
+            margin: 0;
+            font-size: 36px;
+        }
+
+        /* Grid de Locais (Home) */
+        .grid-locais {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .painel-local {
+            background-color: #ff8c00; /* Laranja */
+            color: #ffffff; /* Letras brancas */
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 24px;
             font-weight: bold;
-            color: #0095ff;
+            width: 200px;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
         }
 
-        .status {
-            color: gray;
-            font-size: 10px;
+        .painel-local:hover {
+            transform: scale(1.05);
         }
+
     </style>
 </head>
 
 <body>
 
+    <div class="barra-superior">
+        <div class="container-busca">
+            <input type="text" class="input-busca" placeholder="BUSCAR">
+            <span class="icone-busca">🔍</span>
+        </div>
+    </div>
+
     <div class="cabecalho">
-        <h1>Meu ESP32-S3</h1>
-        <p class="status">Status: <span id="status_conexao">Conectando...</span></p>
-    </div>
-    <div class="painel">
-
-        <h2>Temperatura</h2>
-        <div class="valor"><span id="valor_temperatura">--</span> °C</div>
-    </div>
-    <div class="painel">
-        <h2>Umidade</h2>
-        <div class="valor"><span id="valor_umidade">--</span> %</div>
-    </div>
-    <div class="painel">
-        <h2>Estado da porta</h2>
-        <div class="valor"><span id="estado_da_porta">--</span> </div>
-    </div>
-    <div class="painel">
-        <h2>Estado da energia</h2>
-        <div class="valor"><span id="estado_da_energia">--</span> </div>
+        <h1>SISTEMA DE MONITORAMENTO</h1>
     </div>
 
-    <script>
-        // 1. CONFIGURAÇÕES DO BROKER
-        const broker = "broker.hivemq.com";
-        const porta = 8884; // <-- MUDOU AQUI: Porta para conexão segura (WSS)
-        const topico_temperatura = "meu_projeto_esp32/sensor/temperatura";
-        const topico_umidade = "meu_projeto_esp32/sensor/umidade";
-        const topico_porta = "meu_projeto_esp32/sensor/porta";
-        const topico_energia = "meu_projeto_esp32/sensor/energia";
+    <div class="grid-locais">
+        <a href="hospital.html" class="painel-local">Hospital Universitário</a>
+        <a href="#" class="painel-local">Local 2</a>
+        <a href="#" class="painel-local">Local 3</a>
+        <a href="#" class="painel-local">Local 4</a>
+        <a href="#" class="painel-local">Local 5</a>
+        <a href="#" class="painel-local">Local 6</a>
+        <a href="#" class="painel-local">Local 7</a>
+        <a href="#" class="painel-local">Local 8</a>
+        <a href="#" class="painel-local">Local 9</a>
+        <a href="#" class="painel-local">Local 10</a>
+    </div>
 
-        const clientID = "web_" + parseInt(Math.random() * 1000, 10);
-        const cliente = new Paho.MQTT.Client(broker, porta, clientID);
-
-        // 2. O QUE FAZER QUANDO RECEBER UM DADO
-
-        cliente.onMessageArrived = function (mensagem) {
-            // Descobre de qual tópico a mensagem veio
-            let topicoRecebido = mensagem.destinationName;
-            let dadoRecebido = mensagem.payloadString;
-
-            // Se veio do tópico de temperatura, atualiza o HTML da temperatura
-            if (topicoRecebido === topico_temperatura) {
-                document.getElementById("valor_temperatura").innerText = dadoRecebido;
-            }
-            // Se veio do tópico de umidade, atualiza o HTML da umidade
-            else if (topicoRecebido === topico_umidade) {
-                document.getElementById("valor_umidade").innerText = dadoRecebido;
-            }
-            else if (topicoRecebido === topico_porta) {
-                document.getElementById("estado_da_porta").innerText = dadoRecebido;
-            }
-            else if (topicoRecebido === topico_energia) {
-                document.getElementById("estado_da_energia").innerText = dadoRecebido;
-            }
-
-        };
-
-        // 3. O QUE FAZER SE A CONEXÃO CAIR
-        cliente.onConnectionLost = function (responseObject) {
-            document.getElementById("status_conexao").innerText = "Desconectado";
-            document.getElementById("status_conexao").style.color = "red";
-        };
-
-        // 4. INICIANDO A CONEXÃO
-        cliente.connect({
-            useSSL: true, // <-- MUDOU AQUI: Obriga o navegador a usar segurança
-            onSuccess: function () {
-                document.getElementById("status_conexao").innerText = "Conectado ao Broker!";
-                document.getElementById("status_conexao").style.color = "green";
-                cliente.subscribe(topico_temperatura);
-                cliente.subscribe(topico_umidade);
-                cliente.subscribe(topico_porta);
-                cliente.subscribe(topico_energia);
-            },
-            onFailure: function (erro) {
-                document.getElementById("status_conexao").innerText = "Falha na conexão";
-            }
-        });
-    </script>
 </body>
-
 </html>
