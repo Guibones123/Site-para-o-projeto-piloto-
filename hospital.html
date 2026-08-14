@@ -60,8 +60,15 @@
         .valor {
             font-size: 48px;
             font-weight: bold;
-            color: #ff0000; /* Tom de vermelho solicitado para os algarismos */
+            color: #ff0000;
             margin-top: 10px;
+            
+            /* Novas regras para manter na mesma linha */
+            display: flex;
+            justify-content: center; /* Centraliza no meio da caixa */
+            align-items: baseline; /* Deixa o número alinhado com a unidade */
+            white-space: nowrap; /* Proíbe a quebra de linha */
+            gap: 5px; /* Espaço pequeno entre o número e o °C */
         }
 
         .status {
@@ -120,19 +127,41 @@
         // 2. O QUE FAZER QUANDO RECEBER UM DADO
         cliente.onMessageArrived = function (mensagem) {
             let topicoRecebido = mensagem.destinationName;
-            let dadoRecebido = mensagem.payloadString;
+            // O .trim() tira os espaços invisíveis como fizemos antes
+            let dadoRecebido = mensagem.payloadString.trim(); 
 
+            // TEMPERATURA
             if (topicoRecebido === topico_temperatura) {
-                document.getElementById("valor_temperatura").innerText = dadoRecebido;
+                // Troca o ponto pela vírgula
+                document.getElementById("valor_temperatura").innerText = dadoRecebido.replace('.', ',');
             }
+            
+            // UMIDADE
             else if (topicoRecebido === topico_umidade) {
-                document.getElementById("valor_umidade").innerText = dadoRecebido;
+                // Troca o ponto pela vírgula
+                document.getElementById("valor_umidade").innerText = dadoRecebido.replace('.', ',');
             }
+            
+            // ESTADO DA PORTA
             else if (topicoRecebido === topico_porta) {
-                document.getElementById("estado_da_porta").innerText = dadoRecebido;
+                let textoPorta = dadoRecebido; // Guarda o dado original
+                
+                // Traduz os números para texto
+                if (dadoRecebido === "1") { textoPorta = "Aberta"; }
+                if (dadoRecebido === "0") { textoPorta = "Fechada"; }
+                
+                document.getElementById("estado_da_porta").innerText = textoPorta;
             }
+            
+            // ESTADO DA ENERGIA
             else if (topicoRecebido === topico_energia) {
-                document.getElementById("estado_da_energia").innerText = dadoRecebido;
+                let textoEnergia = dadoRecebido; // Guarda o dado original
+                
+                // Traduz os números para texto
+                if (dadoRecebido === "1") { textoEnergia = "Ligada"; }
+                if (dadoRecebido === "0") { textoEnergia = "Desligada"; }
+                
+                document.getElementById("estado_da_energia").innerText = textoEnergia;
             }
         };
 
